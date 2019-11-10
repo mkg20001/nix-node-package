@@ -4,7 +4,15 @@ let
       [dep.pname] = stdenv.mkDerivation {
         pname = "npm-${dep.name}";
         version = dep.version;
-        sources = flatTree(dep.dependencies);
+        buildScript =
+          ```
+          cp -rp package/ $out
+          mkdir $out/node_modules
+          ```
+          map flatTree(dep.dependencies) {key, value}:
+            ```
+            ln -s ${value} $out/node_modules/${value}
+            ```
       }
     }
 in
