@@ -10,7 +10,7 @@ import ./nix/node-package.nix "./node-tree-or-inherit-whatev" {
 
 TODOs:
 - Make it work
-- Include via nixpkgs/fetchgit/fetchurl?
+- Include module itself via nixpkgs/fetchgit/fetchurl?
 - Better de-dup
 - Possibly split "npm rebuild" deriviation and main-tree deriviation to do even more de-dup
 
