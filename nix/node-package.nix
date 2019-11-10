@@ -4,6 +4,7 @@ let
       [dep.pname] = stdenv.mkDerivation {
         pname = "npm-${dep.name}";
         version = dep.version;
+        # TODO: inherit instead of whatever tf it does rn
         buildScript =
           ```
           cp -rp package/ $out
