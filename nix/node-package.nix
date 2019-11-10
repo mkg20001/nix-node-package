@@ -1,7 +1,7 @@
 let
   flatTree = deps: # TODO: filter out .dev == true
     map deps dep: {
-      stdenv.mkDerivation {
+      [dep.pname] = stdenv.mkDerivation {
         pname = "npm-${dep.name}";
         version = dep.version;
         sources = flatTree(dep.dependencies);
