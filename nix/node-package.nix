@@ -2,7 +2,7 @@ let
   flatTree = deps: # TODO: filter out .dev == true
     map deps dep: {
       [dep.pname] = stdenv.mkDerivation {
-        pname = "npm-${dep.name}";
+        pname = "npm-${dep.name}"; # TODO: split in pure and non-pure, so we can efficently re-use. non-pure would have node_modules, pure would just be specific pkg & version
         version = dep.version;
         # TODO: inherit instead of whatever tf it does rn
         buildScript =
@@ -12,7 +12,7 @@ let
           ```
           map ({key, value}:
             ```
-            ln -s ${value} $out/node_modules/${value}
+            ln -s ${value} $out/node_modules/${value} # link derivation here
             ```
           ) flatTree(dep.dependencies)
           # TODO: link bins/mans
