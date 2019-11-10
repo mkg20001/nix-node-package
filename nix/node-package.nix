@@ -15,6 +15,7 @@ let
             ln -s ${value} $out/node_modules/${value}
             ```
           ) flatTree(dep.dependencies)
+          # TODO: link bins/mans
       }
     }
 in
