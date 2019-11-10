@@ -4,7 +4,7 @@ let
       stdenv.mkDerivation {
         pname = "npm-${dep.name}";
         version = dep.version;
-
+        sources = flatTree(dep.dependencies);
       }
     }
 in
@@ -14,5 +14,11 @@ in
     rec {
       pname = json.name;
       version = json.version;
-      inherit flatTree(json.dependencies)
+      sources = {
+        "node_modules" = flatTree(json)
+      }
+
+      buildScript = ''
+        npm i -g --prefix=$out
+        ''
     } // attrs
