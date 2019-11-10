@@ -10,10 +10,11 @@ let
           cp -rp package/ $out
           mkdir $out/node_modules
           ```
-          map flatTree(dep.dependencies) {key, value}:
+          map ({key, value}:
             ```
             ln -s ${value} $out/node_modules/${value}
             ```
+          ) flatTree(dep.dependencies)
       }
     }
 in
