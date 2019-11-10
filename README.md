@@ -13,3 +13,9 @@ TODOs:
 - Include via nixpkgs/fetchgit/fetchurl?
 - Better de-dup
 - Possibly split "npm rebuild" deriviation and main-tree deriviation to do even more de-dup
+
+# Why not `node2nix`?
+
+- De-duplication: This library tries to de-duplicate as much as possible...
+- Flexibility: ...while still keeping the flexibility of semver-range based version-resolution in nodeJS...
+- Simplicity: ...and allowing you to re-package npm into node without more than 10 lines of additional code in your repo
