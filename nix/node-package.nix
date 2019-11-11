@@ -22,12 +22,12 @@ let
         #}
       }) deps;
 in
-  { root, pkgs }: attrs ? {}:
+  { root, pkgs }: attrs:
     with pkgs;
     let
-      json = importJSON(coerce(root, "package-lock.json"));
+      json = importJSON(root + "/package-lock.json");
       defaultAttrs = {
-        pname = json.name;
+        name = json.name;
         version = json.version;
         sources = {
           "node_modules" = flatTree(json);
