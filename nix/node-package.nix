@@ -19,17 +19,19 @@ let
       }
     }
 in
-  { root, attrs ? {} }:
-    let json = importJSON(coerce(root, "package-lock.json"))
-    in
-    rec {
+  { root, pkgs }: attrs ? {}:
+    let json = importJSON(coerce(root, "package-lock.json"));
+    with pkgs;
+    let defaultAttrs = {
       pname = json.name;
       version = json.version;
       sources = {
-        "node_modules" = flatTree(json)
-      }
+        "node_modules" = flatTree(json);
+      };
 
       buildScript = ''
         npm i -g --prefix=$out
-        ''
-    } // attrs
+        '';
+    };
+    in
+    derivation (defaultAttrs // attrs)
