@@ -22,10 +22,10 @@ let
         #}
       }) deps;
 in
-  { root, pkgs }: attrs:
+  { root, lock, pkgs }: attrs: # TODO: get lock from "root + /package.lock.json"
     with pkgs;
     let
-      json = importJSON(root + "/package-lock.json");
+      json = (builtins.fromJSON(builtins.readFile lock)); # TODO: relative stuff, etc?
       defaultAttrs = {
         name = json.name;
         version = json.version;
@@ -38,4 +38,4 @@ in
           '';
       };
     in
-    derivation (defaultAttrs // attrs)
+    stdenv.mkDerivation (defaultAttrs // attrs)
