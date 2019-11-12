@@ -1,6 +1,20 @@
 with (import <nixpkgs> {});
 let
   json = builtins.fromJSON(builtins.readFile ./package-lock.json);
+
+  derivePure = { name, version, resolved, integrity, ... }:
+    let
+      hash = builtins.match "^([a-z0-9]+)-(.+)$" integrity;
+    in
+      stdenv.mkDerivation({
+        name = "npm-pure-${name}-${version}";
+        version = version;
+        src = fetchurl {
+          url = resolved;
+          ${hash[0]} = hash[1];
+        };
+      });
+
 #  flatTree = { name, version, requires ? {}, dependencies ? [], resolved, integrity }:
 #    let
 #      hash = builtins.match "^([a-z0-9]+)-(.+)$" integrity;
@@ -20,6 +34,7 @@ let
 #  modules = recurseTree(json);
   recursePureEntry = { dependencies, ... }:
     builtins.concatMap (map (dep: { ${dep.name} = makePureModule(dep); }) dependencies);
+
   makePureModule = { name, version, requires ? {}, dependencies ? [], resolved, integrity }:
     let
       hash = builtins.match "^([a-z0-9]+)-(.+)$" integrity;
