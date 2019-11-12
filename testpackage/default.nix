@@ -3,13 +3,15 @@ let
   json = builtins.fromJSON(builtins.readFile ./package-lock.json);
   flatTree = { name, version, requires ? {}, dependencies ? [], resolved, integrity }:
     let
-      integrity = builtins.match "^([a-z0-9]+)-(.+)$" integrity;
-
+      hash = builtins.match "^([a-z0-9]+)-(.+)$" integrity;
     in
       stdenv.mkDerivation({
         name = name;
         version = version;
-
+        src = fetchurl {
+          url = resolved;
+          ${hash[0]} = hash[1];
+        };
       });
   recurseTree = { dependencies, ... }:
     builtins.concatMap(map (dep: {
