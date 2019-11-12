@@ -22,5 +22,8 @@ in
   stdenv.mkDerivation({
     name = json.name;
     version = json.version;
-    src = "./src";
+    src = ./testpackage-0.0.1.tgz;
+    buildScript = ''
+      echo test
+      '';
   })
