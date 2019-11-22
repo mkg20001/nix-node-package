@@ -25,7 +25,9 @@ let
             };
 
             installPhase = ''
-              cp -vp * $out
+              #mkdir "$out"
+              #cp -vp * "$out"
+              mv "$PWD" "$out"
               '';
           });
 
