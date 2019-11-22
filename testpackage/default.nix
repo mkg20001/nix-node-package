@@ -25,7 +25,7 @@ let
             mkdir node_modules
             pushd node_modules
 
-            for dep in ${deps[$level]}; do
+            for dep in {deps[$level]}; do
               getDepName $dep
               installDep $dep $depName
 
