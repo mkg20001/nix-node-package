@@ -9,10 +9,16 @@ let
           tree.${level} = map (dep:
             iterate({ tree = tree; level = "${level}/${dep.name}"; pkg = dep; })
           ) pkg.dependencies;
+          hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
           stdenv.mkDerivation({
-            name = "npm-tarball-${pkg.name}";
+            name = "node-tarball-${pkg.name}-${pkg.version}";
             version = pkg.version;
+
+            src = fetchurl {
+              url = pkg.resolved;
+              ${hash[0]} = hash[1];
+            };
           });
     in
       stdenv.mkDerivation({
