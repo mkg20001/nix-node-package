@@ -21,7 +21,7 @@ let
 
             src = fetchurl {
               url = pkg.resolved;
-              ${hash[0]} = hash[1];
+              ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
             };
 
             installPhase = ''
