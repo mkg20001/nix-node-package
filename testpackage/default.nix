@@ -6,9 +6,9 @@ let
 
       iterate = { tree, level, pkg, isEntry ? false }:
         let
-          tree.${level} = map (dep:
+          tree.${level} = lib.mapAttrsToList (req: dep: # TODO: simplify
             iterate({ tree = tree; level = "${level}/${dep.name}"; pkg = dep; })
-          ) pkg.dependencies; # FIXME: convert pkg.dependencies to list or iterate over it
+          ) pkg.dependencies;
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
           if isEntry then tree else stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
