@@ -29,7 +29,7 @@ let
         name = json.name; # TODO: dynamic
         version = json.version; # TODO: dynamic
 
-        src = ./.;
+        src = root;
 
         # input: level = [ dep1 dep2 dep3 ]; level/level2 = [ dep4 dep2b ];
 
