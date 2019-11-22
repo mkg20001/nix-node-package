@@ -3,6 +3,17 @@ let
   makeNode = root:
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
+
+      iterate = { tree, level, pkg }:
+        let
+          tree.${level} = map (dep:
+            iterate({ tree = tree; level = "${level}/${dep.name}"; pkg = dep; })
+          ) pkg.dependencies;
+        in
+          stdenv.mkDerivation({
+            name = pkg.name;
+            version = pkg.version;
+          });
     in
       stdenv.mkDerivation({
         name = json.name; # TODO: dynamic
