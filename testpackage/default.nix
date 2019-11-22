@@ -16,7 +16,7 @@ let
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
           if isEntry then tree else stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
-            name = "node-tarball-${pkg.name or reqName}-${pkg.version}"; # FIXME: alphanum name
+            name = "node-tarball-${builtins.replaceStrings ["@" "/"] ["=" "="] (pkg.name or reqName)}-${pkg.version}"; # FIXME: alphanum name
             version = pkg.version;
 
             src = fetchurl {
