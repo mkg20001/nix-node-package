@@ -12,11 +12,11 @@ let
 
         installPhase = ''
           getDepName() {
-            # TODO: add
+            depName=$(cat "$1/package.json" | jq -r .name)
           }
 
           installDep() {
-            # TODO: add
+            ln -sv "$1/*" .
           }
 
           installDeps() {
@@ -27,10 +27,13 @@ let
 
             for dep in {deps[$level]}; do
               getDepName $dep
-              installDep $dep $depName
 
+              mkdir $depName
               pushd $depName
+
+              installDep $dep
               installDeps "$level/$depName"
+
               popd
             done
 
