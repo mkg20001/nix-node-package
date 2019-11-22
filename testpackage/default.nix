@@ -4,14 +4,14 @@ let
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
 
-      iterate = { tree, level, pkg }:
+      iterate = { tree, level, pkg, isEntry }:
         let
           tree.${level} = map (dep:
             iterate({ tree = tree; level = "${level}/${dep.name}"; pkg = dep; })
           ) pkg.dependencies;
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
-          stdenv.mkDerivation({
+          if isEntry then tree else stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
             name = "node-tarball-${pkg.name}-${pkg.version}";
             version = pkg.version;
 
@@ -24,6 +24,8 @@ let
               cp -vp * $out
               '';
           });
+
+      tree = iterate({ tree = {}; level = "/"; pkg = json; });
     in
       stdenv.mkDerivation({
         name = json.name; # TODO: dynamic
@@ -34,6 +36,8 @@ let
         # input: level = [ dep1 dep2 dep3 ]; level/level2 = [ dep4 dep2b ];
 
         installPhase = ''
+          # TODO: npm rebuild or emulation of npm rebuild?
+
           getDepName() {
             depName=$(cat "$1/package.json" | jq -r .name)
           }
@@ -62,6 +66,8 @@ let
 
             popd
           }
+
+          installDeps "/"
           '';
       });
 in
