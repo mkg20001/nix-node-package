@@ -4,15 +4,19 @@ let
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
 
-      iterate = { tree, level, pkg, isEntry ? false }:
+      iterate = { tree, level, pkg, reqName ? "", isEntry ? false }:
         let
-          tree.${level} = lib.mapAttrsToList (req: dep: # TODO: simplify
-            iterate({ tree = tree; level = "${level}/${dep.name}"; pkg = dep; })
-          ) pkg.dependencies;
+          tree.${level} = if pkg.dependencies != null
+            then
+              lib.mapAttrsToList (req: dep: # TODO: simplify
+                iterate({ tree = tree; level = "${level}/${dep.name}"; reqName = req; pkg = dep; })
+                ) pkg.dependencies
+            else
+              [];
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
           if isEntry then tree else stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
-            name = "node-tarball-${pkg.name}-${pkg.version}";
+            name = "node-tarball-${pkg.name or reqName}-${pkg.version}";
             version = pkg.version;
 
             src = fetchurl {
@@ -25,7 +29,7 @@ let
               '';
           });
 
-      bashArrayConvert = lib.mapAttrsToList(name: value: "[${name}]='${value}'");
+      bashArrayConvert = lib.mapAttrsToList(name: value: "[${name}]='${builtins.concatStringsSep " " value}'");
 
       setToString = set:
         builtins.concatStringsSep " " (bashArrayConvert(set));
