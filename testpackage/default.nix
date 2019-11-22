@@ -2,13 +2,15 @@ with (import <nixpkgs> {});
 let
   makeNode = root:
     let
-      json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json");
+      json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
     in
       stdenv.mkDerivation({
         name = json.name; # TODO: dynamic
         version = json.version; # TODO: dynamic
 
         src = ./.;
+
+        # input: level = [ dep1 dep2 dep3 ]; level/level2 = [ dep4 dep2b ];
 
         installPhase = ''
           getDepName() {
