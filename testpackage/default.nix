@@ -19,6 +19,10 @@ let
               url = pkg.resolved;
               ${hash[0]} = hash[1];
             };
+
+            installPhase = ''
+              cp -vp * $out
+              '';
           });
     in
       stdenv.mkDerivation({
