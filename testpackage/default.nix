@@ -11,7 +11,7 @@ let
           ) pkg.dependencies;
         in
           stdenv.mkDerivation({
-            name = pkg.name;
+            name = "npm-tarball-${pkg.name}";
             version = pkg.version;
           });
     in
