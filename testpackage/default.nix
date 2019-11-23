@@ -5,11 +5,11 @@ let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
 
       iterate = { tree, level, pkg, reqName ? "", isEntry ? false }:
-        let
+        let # FIXME: recursion after depth 1 seems to be broken
           tree.${level} = #if pkg.dependencies != null
             #then
               lib.mapAttrsToList (req: dep: # TODO: simplify
-                iterate({ tree = tree; level = "${level}/${dep.name}"; reqName = req; pkg = dep; })
+                iterate({ tree = tree; level = "${level}/${req}"; reqName = req; pkg = dep; })
                 ) pkg.dependencies;
             #else
             #  [];
@@ -56,8 +56,17 @@ let
         installPhase = ''
           ddd="$"
 
-          set -x
           declare -A deps=(${setToString(tree)})
+
+          # stfu
+          pushd () {
+            command pushd "$@" > /dev/null
+          }
+
+          # ...u too
+          popd () {
+            command popd "$@" > /dev/null
+          }
 
           # TODO: npm rebuild or emulation of npm rebuild?
 
@@ -66,7 +75,9 @@ let
           }
 
           installDep() {
-            ln -sv "$1/*" .
+            for f in $(ls -A "$1"); do
+              ln -s "$1/$f" "$f"
+            done
           }
 
           installDeps() {
@@ -77,10 +88,10 @@ let
 
             deps=$(eval "echo $ddd{deps[$level]}")
             for dep in $deps; do
-              echo "$dep"
               getDepName "$dep"
+              echo -e "$level\t|\t$depName"
 
-              mkdir "$depName"
+              mkdir -p "$depName"
               pushd "$depName"
 
               installDep "$dep"
