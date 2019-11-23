@@ -6,9 +6,11 @@
         # code
         json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
         lockfilePrepared = prepareLockfile json production;
+        safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
+        tarball = "${safename}-${json.version}.tgz";
       in
         stdenv.mkDerivation({
-          name = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
+          name = safename;
           version = json.version;
 
           src = root;
@@ -16,11 +18,14 @@
           buildInputs = [ nodejs ];
 
           installPhase = ''
-            mv "$PWD" "$out"
-            cd "$out"
+            npm pack
+            tar xfz "${tarball}"
+            mv package "$out"
 
+            cd "$out"
             echo '${lockfilePrepared}' > "package-lock.json"
             npm i ${if production then "--production" else ""}
+            ls -lar $out
             '';
         } // attrs);
   in
