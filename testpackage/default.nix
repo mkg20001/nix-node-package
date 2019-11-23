@@ -1,6 +1,6 @@
 with (import <nixpkgs> {});
 let
-  makeNode = root:
+  makeNode = root: {nodejs}:
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
 
@@ -50,7 +50,7 @@ let
 
         # input: level = [ dep1 dep2 dep3 ]; level/level2 = [ dep4 dep2b ];
 
-        buildInputs = [ jq ];
+        buildInputs = [ jq nodejs ];
 
         # !!! HACK: this isn't right, we should have a way to escape ${var}
         installPhase = ''
@@ -106,7 +106,8 @@ let
           mv "$PWD" "$out"
           cd "$out"
           installDeps "/"
+          # npm_config_loglevel=debug npm rebuild
           '';
       });
 in
-  makeNode(./.)
+  makeNode(./.)({ nodejs = nodejs-10_x; })
