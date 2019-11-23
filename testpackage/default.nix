@@ -25,7 +25,7 @@ let
                 ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
               };
             in
-              [(lib.nameValuePair name fetched)]
+              [(lib.nameValuePair name "file://${fetched}")]
           else
             if name == "dependencies"
             then
@@ -49,7 +49,7 @@ let
         let
           newJson = recreateLockfile json;
         in
-          builtins.toFile "package-lock.json" (builtins.toJSON newJson);
+          builtins.toJSON newJson;
 
       # code
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
@@ -68,8 +68,7 @@ let
           mv "$PWD" "$out"
           cd "$out"
 
-          echo "${lockfilePrepared}"
-          cp "${lockfilePrepared}" "package-lock.json"
+          echo '${lockfilePrepared}' > "package-lock.json"
           npm i
           '';
       });
