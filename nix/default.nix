@@ -1,5 +1,5 @@
-{ lib, fetchurl, stdenv, ... }:
-  with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
+{ lib, fetchurl, fetchgit, fetchFromGitHub, stdenv, ... }:
+  with (import ./util.nix { lib = lib; fetchurl = fetchurl; fetchgit = fetchgit; fetchFromGitHub = fetchFromGitHub; });
   let
     makeNode = {root, nodejs, production ? true}: attrs:
       let
