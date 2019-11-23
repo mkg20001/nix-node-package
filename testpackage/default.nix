@@ -11,60 +11,42 @@ let
         map (dep: recursiveReplaceResolved pkg) deps;
 
       recursiveReplaceResolved = pkg:
-        builtins.listToAttrs(
-          builtins.concatMap (name:
-            if name == "resolved"
+        recursiveIterateRecreate pkg (name:
+          if name == "resolved"
+          then
+            let
+              hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
+              fetched = fetchurl {
+                url = pkg.resolved;
+                ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
+              };
+            in
+              [(nameValuePair name fetched)]
+          else
+            if name == "dependencies"
             then
-              let
-                hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
-                fetched = fetchurl {
-                  url = pkg.resolved;
-                  ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
-                };
-              in
-                [(nameValuePair name fetched)]
+              [(nameValuePair name (recursiveIterateReplace pkg.dependencies))]
             else
-              if name == "dependencies"
-              then
-                [(nameValuePair name (recursiveIterateReplace pkg.dependencies))]
-              else
-                pkg.${name}
-          ) (builtins.attrNames pkg)
+              pkg.${name}
         );
 
       recreateLockfile = lock:
-
-
-
-      _iterateFetchAllPackages = pkg: # TODO: make pure
-        if pkg.dependencies != null then
-          lib.mapAttrsToList (name: dep: # TODO: simplify
-            dep
-            # fetchAllPackages({ pkg = dep; name = name; })
-          ) pkg.dependencies
-        else
-          pkg;
-
-      fetchAllPackages = { pkg, name }: # TODO: make pure
-        let
-          hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
-          fetched = fetchurl {
-            url = pkg.resolved;
-            ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
-          };
-          pkg.resolved = "file://${fetched}";
-          iterated = _iterateFetchAllPackages pkg;
-        in
-          pkg;
+        recursiveIterateRecreate lock (name:
+          if name == "dependencies"
+          then
+            [(nameValuePair name (recursiveIterateReplace lock.dependencies))]
+          else
+            lock.${name}
+      );
 
       prepareLockfile = json:
         let
-          newJson = recursiveReplaceResolved json;
+          newJson = recreateLockfile json;
         in
           builtins.toFile "package-lock.json" (builtins.toJSON newJson);
 
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
-      lockfileNew = prepareLockfile json;
+      lockfilePrepared = prepareLockfile json;
 
     in
       stdenv.mkDerivation({
@@ -79,8 +61,8 @@ let
           mv "$PWD" "$out"
           cd "$out"
 
-          echo "${lockfileNew}"
-          cp "${lockfileNew}" "package-lock.json"
+          echo "${lockfilePrepared}"
+          cp "${lockfilePrepared}" "package-lock.json"
           npm i
           '';
       });
