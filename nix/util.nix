@@ -12,16 +12,16 @@
       );
 
     # private util
-    recursiveIterateReplace = deps:
+    recursiveIterateReplace = deps: opts:
       recursiveIterateRecreate deps (name:
-        if and (lib.hasAttrByPath [name "dev"] deps) production
+        if and (lib.hasAttrByPath [name "dev"] deps) opts.production
         then
           [] # skip dev
         else
-          [(lib.nameValuePair name (recursiveReplaceResolved deps.${name}))]
+          [(lib.nameValuePair name (recursiveReplaceResolved deps.${name} opts))]
       );
 
-    recursiveReplaceResolved = pkg:
+    recursiveReplaceResolved = pkg: opts:
       recursiveIterateRecreate pkg (name:
         if name == "resolved"
         then
@@ -36,25 +36,24 @@
         else
           if name == "dependencies"
           then
-            [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies))]
+            [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies opts))]
           else
             [(lib.nameValuePair name pkg.${name})]
       );
 
-    recreateLockfile = lock:
+    recreateLockfile = lock: opts:
       recursiveIterateRecreate lock (name:
         if name == "dependencies"
         then
-          [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies))]
+          [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies opts))]
         else
           [(lib.nameValuePair name lock.${name})]
     );
 
     # public util
-
-    prepareLockfile = json:
+    prepareLockfile = json: production:
       let
-        newJson = recreateLockfile json;
+        newJson = recreateLockfile json { production = production; };
       in
         builtins.toJSON newJson;
   in {
