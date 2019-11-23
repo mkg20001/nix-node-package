@@ -1,5 +1,6 @@
 with (import <nixpkgs> {});
 let
+  subDerivations = false;
   makeNode = root:
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
@@ -15,21 +16,35 @@ let
               [];
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
-          if isEntry then tree else stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
-            name = "node-tarball-${builtins.replaceStrings ["@" "/"] ["=" "="] (pkg.name or reqName)}-${pkg.version}"; # FIXME: alphanum name
-            version = pkg.version;
+          if isEntry
+          then
+            tree
+          else
+            if subDerivations
+            then
+              stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
+                name = "node-tarball-${builtins.replaceStrings ["@" "/"] ["=" "="] (pkg.name or reqName)}-${pkg.version}"; # FIXME: alphanum name
+                version = pkg.version;
 
-            src = fetchurl {
-              url = pkg.resolved;
-              ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
-            };
+                src = fetchurl {
+                  url = pkg.resolved;
+                  ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
+                };
 
-            installPhase = ''
-              #mkdir "$out"
-              #cp -vp * "$out"
-              mv "$PWD" "$out"
-              '';
-          });
+                buildPhase = ''
+                  '';
+
+                installPhase = ''
+                  #mkdir "$out"
+                  #cp -vp * "$out"
+                  mv "$PWD" "$out"
+                  '';
+              })
+            else
+              fetchurl {
+                url = pkg.resolved;
+                ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
+              };
 
       bashArrayConvert = lib.mapAttrsToList(name: value: "[${name}]='${builtins.concatStringsSep " " value}'");
 
@@ -46,8 +61,15 @@ let
 
         # input: level = [ dep1 dep2 dep3 ]; level/level2 = [ dep4 dep2b ];
 
+        buildInputs = [ jq ];
+
+        # !!! HACK: this isn't right, we should have a way to escape ${var}
         installPhase = ''
+          ddd="$"
+
           declare -A deps=(${setToString(tree)})
+          echo "${setToString(tree)}"
+          echo "$PATH"
 
           # TODO: npm rebuild or emulation of npm rebuild?
 
@@ -65,13 +87,13 @@ let
             mkdir node_modules
             pushd node_modules
 
-            for dep in {deps[$level]}; do
-              getDepName $dep
+            for dep in $(eval "$ddd{deps[$level]}"); do
+              getDepName "$dep"
 
-              mkdir $depName
-              pushd $depName
+              mkdir "$depName"
+              pushd "$depName"
 
-              installDep $dep
+              installDep "$dep"
               installDeps "$level/$depName"
 
               popd
@@ -80,6 +102,8 @@ let
             popd
           }
 
+          mv "$PWD" "$out"
+          cd "$out"
           installDeps "/"
           '';
       });
