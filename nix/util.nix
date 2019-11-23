@@ -22,7 +22,6 @@
 
     recursiveReplaceResolved = pkg: opts:
       recursiveIterateRecreate pkg (name:
-        if name == "resolved" then # else change the resolved url to a resolved hash
           let
             hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
             fetched = fetchurl {
