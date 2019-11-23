@@ -1,7 +1,7 @@
 { lib, fetchurl, stdenv, ... }:
   # with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
-    makeNode = root: {nodejs, production ? true}: attrs:
+    makeNode = {root, nodejs, production ? true}: attrs:
       let
         # internal
         and = a: b:
