@@ -2,11 +2,13 @@ with (import <nixpkgs> {});
 let
   makeNode = root: {nodejs}:
     let
+      # internal
       recursiveIterateRecreate = set: iter:
         builtins.listToAttrs(
           builtins.concatMap iter (builtins.attrNames set)
         );
 
+      # private util
       recursiveIterateReplace = deps:
         map (dep: recursiveReplaceResolved pkg) deps;
 
@@ -27,7 +29,7 @@ let
             then
               [(nameValuePair name (recursiveIterateReplace pkg.dependencies))]
             else
-              pkg.${name}
+              [pkg.${name}]
         );
 
       recreateLockfile = lock:
@@ -36,8 +38,10 @@ let
           then
             [(nameValuePair name (recursiveIterateReplace lock.dependencies))]
           else
-            lock.${name}
+            [lock.${name}]
       );
+
+      # public util
 
       prepareLockfile = json:
         let
@@ -45,6 +49,7 @@ let
         in
           builtins.toFile "package-lock.json" (builtins.toJSON newJson);
 
+      # code
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
       lockfilePrepared = prepareLockfile json;
 
