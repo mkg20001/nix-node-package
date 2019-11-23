@@ -65,7 +65,7 @@
         lockfilePrepared = prepareLockfile json;
       in
         stdenv.mkDerivation({
-          name = json.name;
+          name = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
           version = json.version;
 
           src = root;
