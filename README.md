@@ -7,7 +7,7 @@ let
   pkgs = import <nixpkgs> {};
   nixNodePackage = builtins.fetchGit {
     url = "git@github.com:mkg20001/nix-node-package";
-    rev = "7704b3c55aa15a7b348b2eea732b59ac31eebf35";
+    rev = "e9a2642b93d219a23d28df1081459341b620baf0";
   };
   makeNode = import "${nixNodePackage}/nix/default.nix" pkgs {
     root = ./.;
