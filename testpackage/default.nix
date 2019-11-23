@@ -1,8 +1,13 @@
 with (import <nixpkgs> {});
 let
-  makeNode = root: {nodejs}:
+  makeNode = root: {nodejs, production ? true}:
     let
       # internal
+      and = a: b:
+        if a then
+          if b then true else false
+        else false;
+
       recursiveIterateRecreate = set: iter:
         builtins.listToAttrs(
           builtins.concatMap iter (builtins.attrNames set)
@@ -11,7 +16,7 @@ let
       # private util
       recursiveIterateReplace = deps:
         recursiveIterateRecreate deps (name:
-          if lib.hasAttrByPath [name "dev"] deps
+          if and (lib.hasAttrByPath [name "dev"] deps) production
           then
             [] # skip dev
           else
@@ -73,7 +78,7 @@ let
           cd "$out"
 
           echo '${lockfilePrepared}' > "package-lock.json"
-          npm i --production
+          npm i ${if production then "--production" else ""}
           '';
       });
 in
