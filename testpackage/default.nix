@@ -7,13 +7,13 @@ let
 
       iterate = { tree, level, pkg, reqName ? "", isEntry ? false }:
         let
-          tree.${level} = if pkg.dependencies != null
-            then
+          tree.${level} = #if pkg.dependencies != null
+            #then
               lib.mapAttrsToList (req: dep: # TODO: simplify
                 iterate({ tree = tree; level = "${level}/${dep.name}"; reqName = req; pkg = dep; })
-                ) pkg.dependencies
-            else
-              [];
+                ) pkg.dependencies;
+            #else
+            #  [];
           hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
         in
           if isEntry
@@ -35,9 +35,10 @@ let
                   '';
 
                 installPhase = ''
-                  #mkdir "$out"
-                  #cp -vp * "$out"
                   mv "$PWD" "$out"
+                  '';
+
+                fixPhase = ''
                   '';
               })
             else
@@ -68,8 +69,6 @@ let
           ddd="$"
 
           declare -A deps=(${setToString(tree)})
-          echo "${setToString(tree)}"
-          echo "$PATH"
 
           # TODO: npm rebuild or emulation of npm rebuild?
 
