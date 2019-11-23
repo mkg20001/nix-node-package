@@ -11,7 +11,11 @@ let
       # private util
       recursiveIterateReplace = deps:
         recursiveIterateRecreate deps (name:
-          [(lib.nameValuePair name (recursiveReplaceResolved deps.${name}))]
+          if lib.hasAttrByPath [name "dev"] deps
+          then
+            [] # skip dev
+          else
+            [(lib.nameValuePair name (recursiveReplaceResolved deps.${name}))]
         );
 
       recursiveReplaceResolved = pkg:
@@ -69,7 +73,7 @@ let
           cd "$out"
 
           echo '${lockfilePrepared}' > "package-lock.json"
-          npm i
+          npm i --production
           '';
       });
 in
