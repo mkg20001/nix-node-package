@@ -1,6 +1,5 @@
 with (import <nixpkgs> {});
 let
-  subDerivations = false;
   makeNode = root:
     let
       json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
@@ -20,32 +19,21 @@ let
           then
             tree
           else
-            if subDerivations
-            then
-              stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
-                name = "node-tarball-${builtins.replaceStrings ["@" "/"] ["=" "="] (pkg.name or reqName)}-${pkg.version}"; # FIXME: alphanum name
-                version = pkg.version;
+            stdenv.mkDerivation({ # return tree on entry, otherwise build tarball package
+              name = "node-tarball-${builtins.replaceStrings ["@" "/"] ["+" "+"] (pkg.name or reqName)}-${pkg.version}"; # FIXME: alphanum name
+              version = pkg.version;
 
-                src = fetchurl {
-                  url = pkg.resolved;
-                  ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
-                };
-
-                buildPhase = ''
-                  '';
-
-                installPhase = ''
-                  mv "$PWD" "$out"
-                  '';
-
-                fixPhase = ''
-                  '';
-              })
-            else
-              fetchurl {
+              src = fetchurl {
                 url = pkg.resolved;
                 ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
               };
+
+              phases = "unpackPhase installPhase distPhase";
+
+              installPhase = ''
+                cp -r "$PWD" "$out"
+                '';
+            });
 
       bashArrayConvert = lib.mapAttrsToList(name: value: "[${name}]='${builtins.concatStringsSep " " value}'");
 
@@ -68,6 +56,7 @@ let
         installPhase = ''
           ddd="$"
 
+          set -x
           declare -A deps=(${setToString(tree)})
 
           # TODO: npm rebuild or emulation of npm rebuild?
@@ -86,7 +75,9 @@ let
             mkdir node_modules
             pushd node_modules
 
-            for dep in $(eval "$ddd{deps[$level]}"); do
+            deps=$(eval "echo $ddd{deps[$level]}")
+            for dep in $deps; do
+              echo "$dep"
               getDepName "$dep"
 
               mkdir "$depName"
