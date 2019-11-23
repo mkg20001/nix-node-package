@@ -10,7 +10,9 @@ let
 
       # private util
       recursiveIterateReplace = deps:
-        map (dep: recursiveReplaceResolved pkg) deps;
+        recursiveIterateRecreate deps (name:
+          [(lib.nameValuePair name (recursiveReplaceResolved deps.${name}))]
+        );
 
       recursiveReplaceResolved = pkg:
         recursiveIterateRecreate pkg (name:
@@ -23,22 +25,22 @@ let
                 ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
               };
             in
-              [(nameValuePair name fetched)]
+              [(lib.nameValuePair name fetched)]
           else
             if name == "dependencies"
             then
-              [(nameValuePair name (recursiveIterateReplace pkg.dependencies))]
+              [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies))]
             else
-              [pkg.${name}]
+              [(lib.nameValuePair name pkg.${name})]
         );
 
       recreateLockfile = lock:
         recursiveIterateRecreate lock (name:
           if name == "dependencies"
           then
-            [(nameValuePair name (recursiveIterateReplace lock.dependencies))]
+            [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies))]
           else
-            [lock.${name}]
+            [(lib.nameValuePair name lock.${name})]
       );
 
       # public util
