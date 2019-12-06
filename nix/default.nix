@@ -1,4 +1,4 @@
-{ lib, fetchurl, stdenv, ... }:
+{ lib, fetchurl, stdenv, jq, ... }:
   with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
     makeNode = {root, nodejs, production ? true}: attrs:
@@ -16,6 +16,7 @@
           src = root;
 
           buildInputs = [ nodejs ];
+          nativeBuildInputs = [ jq ];
 
           installPhase = ''
             npm pack
@@ -25,7 +26,10 @@
             cd "$out"
             echo '${lockfilePrepared}' > "package-lock.json"
             npm i ${if production then "--production" else ""}
-            ls -lar $out
+
+            mkdir $out/bin
+            # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
+            cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
             '';
         } // attrs);
   in
