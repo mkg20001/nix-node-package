@@ -45,6 +45,20 @@
           [(lib.nameValuePair name lock.${name})]
     );
 
+    # yarn
+
+    parseYarn = str:
+      twoLevelAttrsList(
+        map (str: )
+      );
+
+    recurseDependencies = str:
+      ;
+
+    convertYarnToNpm = str: pkgJson:
+      ;
+
+
     # public util
     prepareLockfile = json: production:
       let
