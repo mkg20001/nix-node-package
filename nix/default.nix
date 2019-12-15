@@ -28,7 +28,7 @@
 
             cd "$out"
             echo '${lockfilePrepared}' > "package-lock.json"
-            npm i ${if production then "--production" else ""}
+            HOME=/tmp npm i ${if production then "--production" else ""}
 
             mkdir $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
