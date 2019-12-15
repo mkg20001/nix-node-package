@@ -19,6 +19,9 @@
           nativeBuildInputs = [ jq ];
 
           installPhase = ''
+            # fix update check failed errors
+            export NO_UPDATE_NOTIFIER=true
+
             npm pack
             tar xfz "${tarball}"
             mv package "$out"
