@@ -9,7 +9,7 @@
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
       in
-        stdenv.mkDerivation({
+        stdenv.mkDerivation(lib.mergeAttrsConcatenateValues {
           name = safename;
           version = json.version;
 
@@ -36,6 +36,6 @@
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
             cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
             '';
-        } // attrs);
+        } attrs);
   in
     makeNode
