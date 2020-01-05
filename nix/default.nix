@@ -18,9 +18,9 @@
           buildInputs = [ nodejs ];
           nativeBuildInputs = [ jq ];
 
-          installPhase = ''
-            runHook preInstall
+          preInstallPhases = [ "nodeInstallPhase" ];
 
+          nodeInstallPhase = ''
             # fix update check failed errors
             export NO_UPDATE_NOTIFIER=true
 
@@ -35,8 +35,6 @@
             mkdir $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
             cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
-
-            runHook postInstall
             '';
         } // attrs);
   in
