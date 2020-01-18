@@ -10,7 +10,7 @@
         tarball = "${safename}-${json.version}.tgz";
       in
         stdenv.mkDerivation(concatAttrs {
-          name = safename;
+          pname = safename;
           version = json.version;
 
           src = root;
