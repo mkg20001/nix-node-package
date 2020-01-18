@@ -55,7 +55,7 @@
     prepareLockfile = prepareLockfile;
     concatAttrs = a: b: # just a level-1 concat for lists only, due to perf
       a // recursiveIterateRecreate b (key:
-        if lib.hasAttr [ key ] a && builtins.isList a.${key} && builtins.isList b.${key} then
+        if lib.hasAttrByPath [ key ] a && builtins.isList a.${key} && builtins.isList b.${key} then
           [(lib.nameValuePair key (a.${key} ++ b.${key}))]
         else
           [(lib.nameValuePair key b.${key})]
