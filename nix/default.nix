@@ -9,7 +9,7 @@
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
       in
-        stdenv.mkDerivation(lib.mergeAttrsConcatenateValues {
+        stdenv.mkDerivation(concatAttrs {
           name = safename;
           version = json.version;
 
@@ -42,7 +42,6 @@
 
             cd "$out"
             echo '${lockfilePrepared}' > "package-lock.json"
-            cat package.json
             HOME=/tmp npm i ${if production then "--production" else ""}
 
             mkdir $out/bin
