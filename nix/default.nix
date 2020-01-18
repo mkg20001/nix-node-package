@@ -9,7 +9,7 @@
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
       in
-        stdenv.mkDerivation(concatAttrs {
+        stdenv.mkDerivation({
           name = safename;
           version = json.version;
 
@@ -50,6 +50,6 @@
           '';
 
           installPhase = "true"; # add dummy install phase so it won't fail, user can override this
-        } attrs);
+        });
   in
     makeNode
