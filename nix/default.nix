@@ -5,7 +5,7 @@
       let
         # code
         json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
-        lockfilePrepared = prepareLockfile json production;
+        lockfilePrepared = prepareLockfile json (production && buildProduction);
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
       in
