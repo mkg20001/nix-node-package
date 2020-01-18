@@ -3,5 +3,6 @@ let
   mkDerivation = import ../../nix/default.nix pkgs {
     root = ./.;
     nodejs = pkgs.nodejs-10_x;
+    buildProduction = true;
   };
 in mkDerivation { }
