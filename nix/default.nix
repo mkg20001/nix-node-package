@@ -1,4 +1,5 @@
 { lib, fetchurl, stdenv, jq, ... }:
+  with lib;
   with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
     makeNode = {root, nodejs, production ? true, build ? true, buildProduction ? false}: attrs:
@@ -29,7 +30,7 @@
           preBuildPhases = [ "nodeBuildPhase" ];
 
           nodeBuildPhase = if build then ''
-            echo '${lockfilePrepared}' > "package-lock.json"
+            echo ${escapeShellArg lockfilePrepared} > "package-lock.json"
             HOME=/tmp npm i ${if buildProduction then "--production" else ""}
           '' else "true";
 
