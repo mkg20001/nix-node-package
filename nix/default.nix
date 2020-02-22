@@ -1,4 +1,10 @@
-{ lib, fetchurl, stdenv, jq, ... }:
+{ lib
+, fetchurl
+, stdenv
+, jq
+, nukeReferences
+, ...
+}:
   with lib;
   with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
@@ -18,7 +24,7 @@
 
           buildInputs = [ nodejs ];
 
-          nativeBuildInputs = [ jq ];
+          nativeBuildInputs = [ jq nukeReferences ];
 
           prePhases = [ "nodeExports" ];
 
@@ -48,6 +54,8 @@
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
             cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
+
+            nuke-refs "$out/package-lock.json"
           '';
 
           installPhase = "true"; # add dummy install phase so it won't fail, user can override this
