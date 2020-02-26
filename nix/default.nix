@@ -56,6 +56,9 @@
             cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
 
             nuke-refs "$out/package-lock.json"
+            for f in $(find -iname package.json); do
+              nuke-refs "$f"
+            done
           '';
 
           installPhase = "true"; # add dummy install phase so it won't fail, user can override this
