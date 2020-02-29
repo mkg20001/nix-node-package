@@ -8,10 +8,20 @@
   with lib;
   with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
-    makeNode = {root, nodejs, production ? true, build ? true, buildProduction ? false}: attrs:
+    makeNode = {
+      root,
+      packageLock ? null,
+      yarnLock ? null,
+
+      nodejs,
+      production ? true,
+      build ? true,
+      buildProduction ? false
+    }: attrs:
       let
         # code
-        json = builtins.fromJSON(builtins.readFile "${root}/package-lock.json"); # TODO: also support yarn.lock
+        jsonFile = if (packageLock != null) then packageLock else "${root}/package-lock.json"; # TODO: yarn.lock
+        json = builtins.fromJSON(builtins.readFile jsonFile); # TODO: also support yarn.lock
         lockfilePrepared = prepareLockfile json (production && buildProduction);
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
