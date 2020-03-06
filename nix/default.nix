@@ -47,7 +47,7 @@
           preBuildPhases = [ "nodeBuildPhase" ];
 
           nodeBuildPhase = if build then ''
-            echo ${escapeShellArg lockfilePrepared} > "package-lock.json"
+            cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
             HOME=/tmp npm i ${if buildProduction then "--production" else ""}
           '' else "true";
 
@@ -59,6 +59,7 @@
             mv package "$out"
 
             cd "$out"
+            
             cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
             HOME=/tmp npm i ${if production then "--production" else ""}
 
