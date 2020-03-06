@@ -1,0 +1,28 @@
+{
+  "name": "testpackage",
+  "template": {
+    "extends": [
+      "node"
+    ],
+    "node": {
+      "noLock": true
+    }
+  },
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -A",
+    "cov": "nyc mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "*",
+    "nyc": "*"
+  },
+  "dependencies": {
+    "aegir": "^21.3.0",
+    "mkgs-tool": "^0.1.6"
+  }
+}
