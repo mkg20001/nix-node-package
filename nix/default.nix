@@ -4,6 +4,7 @@
 , jq
 , nukeReferences
 , writeText
+, python3
 , ...
 }:
   with lib;
@@ -35,7 +36,7 @@
 
           buildInputs = [ nodejs ];
 
-          nativeBuildInputs = [ jq nukeReferences ];
+          nativeBuildInputs = [ jq nukeReferences python3 ];
 
           prePhases = [ "nodeExports" ];
 
