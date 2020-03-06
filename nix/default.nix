@@ -3,6 +3,7 @@
 , stdenv
 , jq
 , nukeReferences
+, writeText
 , ...
 }:
   with lib;
@@ -58,7 +59,7 @@
             mv package "$out"
 
             cd "$out"
-            echo '${lockfilePrepared}' > "package-lock.json"
+            cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
             HOME=/tmp npm i ${if production then "--production" else ""}
 
             mkdir -p $out/bin
