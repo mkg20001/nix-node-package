@@ -45,7 +45,15 @@
             export NO_UPDATE_NOTIFIER=true
           '';
 
-          preBuildPhases = [ "nodeBuildPhase" ];
+          preBuildPhases = [ "nodeGypHeaders" "nodeBuildPhase" ];
+
+          nodeGypHeaders = ''
+            NODE_VERSION=$(node --version | sed "s|v||g")
+            GYP_FOLDER="/tmp/.cache/node-gyp/$NODE_VERSION"
+            mkdir -p "$GYP_FOLDER"
+            ln -s ${nodejs}/include "$GYP_FOLDER/include"
+            echo 9 > "$GYP_FOLDER/installVersion"
+          '';
 
           nodeBuildPhase = if build then ''
             cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
@@ -60,7 +68,7 @@
             mv package "$out"
 
             cd "$out"
-            
+
             cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
             HOME=/tmp npm i ${if production then "--production" else ""}
 
