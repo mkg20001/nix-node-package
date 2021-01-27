@@ -1,1 +1,3 @@
 result
+# it's a library so don't upload the lock
+flake.lock
