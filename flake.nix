@@ -3,7 +3,7 @@
 
   outputs = { self, nixpkgs }: {
 
-    lib.nix-node-package = import ./nix nixpkgs;
+    lib.nix-node-package = import ./nix;
 
   };
 }
