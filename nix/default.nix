@@ -65,7 +65,7 @@
           nodeInstallPhase = ''
             npm pack
             tar xfz "${tarball}"
-            mv package "$out"
+            mv package/. "$out"
 
             cd "$out"
 
