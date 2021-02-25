@@ -1,7 +1,7 @@
 {
   description = "nix-node-package";
 
-  outputs = { self, nixpkgs }: {
+  outputs = { self }: {
 
     lib.nix-node-package = import ./nix;
 
