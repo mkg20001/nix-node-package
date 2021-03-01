@@ -57,7 +57,7 @@
 
           nodeBuildPhase = if build then ''
             cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
-            HOME=/tmp npm i ${if buildProduction then "--production" else ""}
+            HOME=/tmp npm ci ${if buildProduction then "--production" else ""}
           '' else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
@@ -71,7 +71,7 @@
             cd "$out"
 
             cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
-            HOME=/tmp npm i ${if production then "--production" else ""}
+            HOME=/tmp npm ci ${if production then "--production" else ""}
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
