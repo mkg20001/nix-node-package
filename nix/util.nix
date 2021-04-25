@@ -21,6 +21,7 @@
       );
 
     recursiveReplaceResolved = pkg: opts:
+      # TODO: if pkg.dev and opts.production then [] else
       recursiveIterateRecreate pkg (name:
         if name == "resolved" then # else change the resolved url to a resolved hash
           let
@@ -50,6 +51,8 @@
       recursiveIterateRecreate lock (name:
         if name == "dependencies" then
           [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies opts))]
+        else if name == "packages" then # lockfile v2
+          [(lib.nameValuePair name (recursiveIterateReplace lock.packages opts))]
         else
           [(lib.nameValuePair name lock.${name})]
     );
