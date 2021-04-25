@@ -21,7 +21,6 @@
       );
 
     recursiveReplaceResolved = pkg: opts:
-      # TODO: if pkg.dev and opts.production then [] else
       recursiveIterateRecreate pkg (name:
         if name == "resolved" then # else change the resolved url to a resolved hash
           let
@@ -32,16 +31,16 @@
             };
           in
             [(lib.nameValuePair name "file://${fetched}")]
-        else if name == "version" && lib.hasPrefix "http" pkg.version then # else change the resolved url (that is the versino) to a resolved hash
+        else if name == "version" && lib.hasPrefix "http" pkg.version then # else change the resolved url (that is the version) to a resolved hash
           let
             hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
             fetched = fetchurl {
               url = pkg.version;
               ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
             };
-          in
+          in # this is when we install directly from a tarball as dependency
             [(lib.nameValuePair name pkg.version) (lib.nameValuePair "resolved" "file://${fetched}")]
-        else if name == "dependencies" and opts.version == 1 then
+        else if name == "dependencies" && opts.version == 1 then
           [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies opts))]
         else
           [(lib.nameValuePair name pkg.${name})]
@@ -49,9 +48,11 @@
 
     recreateLockfile = lock: opts:
       recursiveIterateRecreate lock (name:
-        if name == "dependencies" and opts.version == 1 then
+        if name == "dependencies" && opts.version == 1 then
           [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies opts))]
-        else if name == "packages" and opts.version == 2 then
+        else if name == "dependencies" && opts.version == 2 then
+          [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies (opts // { version = 1; })))]
+        else if name == "packages" && opts.version == 2 then
           [(lib.nameValuePair name (recursiveIterateReplace lock.packages opts))]
         else
           [(lib.nameValuePair name lock.${name})]
@@ -60,7 +61,7 @@
     # public util
     prepareLockfile = json: production:
       let
-        newJson = recreateLockfile json { production = production; version = json.lockfileVersion; };
+        newJson = recreateLockfile json { production = if json.lockfileVersion < 2 then production else false; version = json.lockfileVersion; };
       in
         builtins.toJSON newJson;
   in {
