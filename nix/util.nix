@@ -41,7 +41,7 @@
             };
           in
             [(lib.nameValuePair name pkg.version) (lib.nameValuePair "resolved" "file://${fetched}")]
-        else if name == "dependencies" then
+        else if name == "dependencies" and opts.version == 1 then
           [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies opts))]
         else
           [(lib.nameValuePair name pkg.${name})]
@@ -49,9 +49,9 @@
 
     recreateLockfile = lock: opts:
       recursiveIterateRecreate lock (name:
-        if name == "dependencies" then
+        if name == "dependencies" and opts.version == 1 then
           [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies opts))]
-        else if name == "packages" then # lockfile v2
+        else if name == "packages" and opts.version == 2 then
           [(lib.nameValuePair name (recursiveIterateReplace lock.packages opts))]
         else
           [(lib.nameValuePair name lock.${name})]
@@ -60,7 +60,7 @@
     # public util
     prepareLockfile = json: production:
       let
-        newJson = recreateLockfile json { production = production; };
+        newJson = recreateLockfile json { production = production; version = json.lockfileVersion; };
       in
         builtins.toJSON newJson;
   in {
