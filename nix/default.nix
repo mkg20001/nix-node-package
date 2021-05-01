@@ -34,6 +34,8 @@
 
           src = root;
 
+          lockfile = writeText "package-lock.json" lockfilePrepared;
+
           buildInputs = [ nodejs ];
 
           nativeBuildInputs = [ jq nukeReferences python3 ];
@@ -56,7 +58,7 @@
           '';
 
           nodeBuildPhase = if build then ''
-            cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
+            cat $lockfile > "package-lock.json"
             HOME=/tmp npm ci ${if buildProduction then "--production" else ""}
           '' else "true";
 
@@ -70,7 +72,7 @@
 
             cd "$out"
 
-            cat ${writeText "package-lock.json" lockfilePrepared} > "package-lock.json"
+            cat $lockfile > "package-lock.json"
             HOME=/tmp npm ci ${if production then "--production" else ""}
 
             mkdir -p $out/bin
