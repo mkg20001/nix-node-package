@@ -45,6 +45,8 @@
           nodeExports = ''
             # fix update check failed errors
             export NO_UPDATE_NOTIFIER=true
+            # fix node weirdness
+            export HOME=$(mktemp -d)
           '';
 
           preBuildPhases = [ "nodeGypHeaders" "nodeBuildPhase" ];
@@ -59,7 +61,7 @@
 
           nodeBuildPhase = if build then ''
             cat $lockfile > "package-lock.json"
-            HOME=/tmp npm ci ${if buildProduction then "--production" else ""}
+            npm ci ${if buildProduction then "--production" else ""}
           '' else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
@@ -73,7 +75,7 @@
             cd "$out"
 
             cat $lockfile > "package-lock.json"
-            HOME=/tmp npm ci ${if production then "--production" else ""}
+            npm ci ${if production then "--production" else ""}
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
