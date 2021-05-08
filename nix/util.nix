@@ -31,7 +31,7 @@
             };
           in
             [(lib.nameValuePair name "file://${fetched}")]
-        else if name == "version" && lib.hasPrefix "http" pkg.version then # else change the resolved url (that is the version) to a resolved hash
+        else if name == "version" && (lib.hasPrefix "http" pkg.version) then # else change the resolved url (that is the version) to a resolved hash
           let
             hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
             fetched = fetchurl {
@@ -39,7 +39,7 @@
               ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
             };
           in # this is when we install directly from a tarball as dependency
-            [(lib.nameValuePair name pkg.version) (lib.nameValuePair "resolved" "file://${fetched}")]
+            [(lib.nameValuePair name "file://${fetched}") (lib.nameValuePair "resolved" "file://${fetched}")]
         else if name == "dependencies" && opts.version == 1 then
           [(lib.nameValuePair name (recursiveIterateReplace pkg.dependencies opts))]
         else
