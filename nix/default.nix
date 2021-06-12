@@ -61,7 +61,9 @@
 
           nodeBuildPhase = if build then ''
             cat $lockfile > "package-lock.json"
-            npm ci ${if buildProduction then "--production" else ""}
+            npm ci --ignore-scripts ${if buildProduction then "--production" else ""}
+            patchShebangs node_modules
+            npm rebuild
           '' else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
@@ -75,7 +77,9 @@
             cd "$out"
 
             cat $lockfile > "package-lock.json"
-            npm ci ${if production then "--production" else ""}
+            npm ci --ignore-scripts ${if production then "--production" else ""}
+            patchShebangs node_modules
+            npm rebuild
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
