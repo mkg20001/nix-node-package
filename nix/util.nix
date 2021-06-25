@@ -23,8 +23,8 @@
     recursiveReplaceResolved = pkg: opts:
       recursiveIterateRecreate pkg (name:
         if name == "resolved" then # else change the resolved url to a resolved hash
-          if pkg ? link then # this is when we are referncing a file
-            [(lib.nameValuePair name "file://${src + "/" + pkg.resolved}")]
+          if pkg ? link then # this is when we are referncing a file (version=file:path/to/folder)
+            [(lib.nameValuePair name "file://${src + "/" + (builtins.substring 5 (builtins.stringLength pkg.version) pkg.version)}")]
           else
           let
             hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
