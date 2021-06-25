@@ -1,4 +1,4 @@
-{ lib, fetchurl }:
+{ lib, fetchurl }: src:
   let
     # internal
     and = a: b:
@@ -23,6 +23,9 @@
     recursiveReplaceResolved = pkg: opts:
       recursiveIterateRecreate pkg (name:
         if name == "resolved" then # else change the resolved url to a resolved hash
+          if pkg ? link then # this is when we are referncing a file
+            [(lib.nameValuePair name "file://${src + "/" + pkg.resolved}")]
+          else
           let
             hash = builtins.match "^([a-z0-9]+)-(.+)$" pkg.integrity;
             fetched = fetchurl {

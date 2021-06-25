@@ -8,8 +8,9 @@
 , ...
 }:
   with lib;
-  with (import ./util.nix { lib = lib; fetchurl = fetchurl; });
   let
+    u = import ./util.nix { lib = lib; fetchurl = fetchurl; };
+
     makeNode = {
       root,
       packageLock ? null,
@@ -17,9 +18,10 @@
 
       nodejs,
       production ? true,
-      build ? true,
+      build ? false,
       buildProduction ? false
     }: attrs:
+      with u root;
       let
         # code
         jsonFile = if (packageLock != null) then packageLock else "${root}/package-lock.json"; # TODO: yarn.lock
