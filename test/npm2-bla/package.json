@@ -1,0 +1,62 @@
+{
+  "dependencies": {
+    "@hapi/boom": "^9.1.2",
+    "@hapi/hapi": "^20.1.2",
+    "bl": "^5.0.0",
+    "dayjs": "^1.10.4",
+    "debug": "^4.3.1",
+    "hapi-pino": "^8.3.0",
+    "hapi-sentry": "^3.2.0",
+    "ip": "^1.1.5",
+    "joi": "^17.4.0",
+    "micromatch": "^4.0.4",
+    "mkdirp": "^1.0.4",
+    "mkg-bin-gen": "^0.1.4",
+    "mkgs-tool": "^0.1.15",
+    "node-forge": "^0.10.0",
+    "pino": "^6.11.3",
+    "pino-noir": "^2.2.1",
+    "relish": "^3.0.0"
+  },
+  "bin": {
+    "acme-distributor": "./src/bin.js",
+    "acme-token": "./src/token.js"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "template": {
+    "extends": [
+      "nodeEslint"
+    ],
+    "node": {
+      "noNodeLock": true
+    }
+  },
+  "name": "acme-distributor",
+  "description": "Service that hands out certificates to machines requesting them",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "devDependencies": {
+    "eslint": "*",
+    "eslint-config-ipfs": "*",
+    "eslint-config-oclif": "*",
+    "mocha": "*",
+    "nyc": "*"
+  },
+  "scripts": {
+    "test": "mocha -A",
+    "cov": "nyc mocha",
+    "lint": "eslint .",
+    "fix": "eslint --fix ."
+  },
+  "keywords": [
+    "acme",
+    "letsencrypt",
+    "ssl",
+    "certificate",
+    "server"
+  ],
+  "author": "Maciej Krüger <mkg20001@gmail.com>",
+  "license": "MPL-2.0"
+}
