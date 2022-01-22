@@ -57,15 +57,15 @@ while (i < end) {
     const n = []
     cur.push({ key: parseValue(line.substr(level * 2, line.length - 1 - level * 2)), value: n })
     stack.push(cur)
+    cur = n
     level++
     continue
   } else if (line.trim()) {
     const target = line.indexOf(' ', level * 2)
-    console.log(target, line)
     cur.push({ key: parseValueSingle(line.substr(level * 2, target - level * 2)), value: parseValueSingle(line.substr(target + 1)) })
   } else {
     cur.push({ empty: true })
   }
 }
 
-console.log(JSON.stringify(root, null, 2))
+console.log(JSON.stringify({ comment, root }, null, 2))
