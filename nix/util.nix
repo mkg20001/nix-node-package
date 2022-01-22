@@ -1,11 +1,6 @@
 { lib, fetchurl }: src:
   let
     # internal
-    and = a: b:
-      if a then
-        if b then true else false
-      else false;
-
     parseIntegrity = builtins.match "^([a-z0-9]+)-(.+)$";
 
     findEntry = el: name: findSingle (el: el ? key && el.key == name) null null;
@@ -20,7 +15,7 @@
     # private util
     recursiveIterateReplace = deps: opts:
       recursiveIterateRecreate deps (name:
-        if and (lib.hasAttrByPath [name "dev"] deps) opts.production then
+        if (lib.hasAttrByPath [name "dev"] deps) && opts.production then
           [] # skip dev
         else
           [(lib.nameValuePair name (recursiveReplaceResolved deps.${name} opts))]
