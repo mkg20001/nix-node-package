@@ -26,7 +26,7 @@ function iter (data, l = 0) {
   data.forEach(el => {
     if (el.empty) console.log()
     else if (Array.isArray(el.value)) {
-      console.log(L.repeat(l) + stringValue(el.key) + ':')
+      console.log(L.repeat(l) + (Array.isArray(el.key) ? stringValue(el.key) : stringValueSingle(el.key)) + ':')
       iter(el.value, l + 1)
     } else if (el.value) {
       console.log(L.repeat(l) + stringValueSingle(el.key) + ' ' + stringValueSingle(el.value))

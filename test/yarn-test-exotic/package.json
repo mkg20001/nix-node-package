@@ -1,0 +1,10 @@
+{
+  "name": "yarn-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "parcel": "^2.2.1",
+    "xtend": "/nix/store/j93r3grj36pzbq4bz47qfximx7ffawgy-xtend-4.0.2.tgz"
+  }
+}

@@ -55,7 +55,8 @@ while (i < end) {
   }
   if (line.endsWith(':')) {
     const n = []
-    cur.push({ key: parseValue(line.substr(level * 2, line.length - 1 - level * 2)), value: n })
+    // only do multiple keys at top
+    cur.push({ key: (level ? parseValueSingle : parseValue)(line.substr(level * 2, line.length - 1 - level * 2)), value: n })
     stack.push(cur)
     cur = n
     level++

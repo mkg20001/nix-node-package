@@ -2,8 +2,9 @@
   let
     # internal
     parseIntegrity = builtins.match "^([a-z0-9]+)-(.+)$";
+    parseYarn = builtins.match "^(.+)#([a-z0-9]+)$";
 
-    findEntry = el: name: findSingle (el: el ? key && el.key == name) null null;
+    findEntry = el: name: (lib.findSingle (el: el ? key && el.key._value == name) { value =  { _value = null; }; } { value =  { _value = null; }; } el.value).value._value;
 
     hasEntry = el: name: findEntry el name != null;
 
@@ -67,27 +68,33 @@
     );
 
     replaceInEntry = rep: entry:
-      map (el: if el ? key && rep ? el.key then {
-        key = el.key;
-        value = {
-          _quoted = el.value._quoted;
-          _value = rep.${el.key};
-        };
-      } else el);
+      entry // {
+        value = map (el: if el ? key && rep ? "${el.key._value}" then (if rep.${el.key._value} != null then {
+          key = el.key;
+          value = {
+            _quoted = el.value._quoted;
+            _value = rep.${el.key._value};
+          };
+        } else { empty = true; }) else el) entry.value;
+      };
 
     processYarnEntry = entry: let
       f = findEntry entry;
 
       hash = parseIntegrity (f "integrity");
 
+      y = parseYarn (f "resolved");
+
       fetched = fetchurl {
-        url = f "resolved";
+        url = builtins.elemAt y 0;
         ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
       };
     in
-      replaceInEntry {
-        resolved = "file://${fetched}";
-      };
+      if entry ? empty then entry else
+      if lib.hasPrefix "/" (f "resolved") then entry # if we have a local file path, just copy
+      else replaceInEntry {
+        resolved = "${fetched}#${builtins.elemAt y 1}";
+      } entry;
 
     # public util
     prepareLockfile = json: production:
@@ -97,17 +104,27 @@
         builtins.toJSON newJson;
 
     # FIXME: stub
-    prepareYarnLockfile = { yarnLockfile, nodejs }: let
-      exec = sc: file: doExec "${nodejs}/bin/node ${sc} ${file}";
+    prepareYarnLockfile = { yarnLockfile, nodejs, runCommand }: let
+      exec = sc: file: runCommand "yarn.lock" {
+        inherit file;
+        passAsFile = if lib.hasPrefix "/" file then [] else [ "file" ];
+      }
+      ''
+        if [ ! -z $filePath ]; then
+          ${nodejs}/bin/node ${sc} $filePath > $out
+        else
+          ${nodejs}/bin/node ${sc} $file > $out
+        fi
+      '';
 
-      json = builtins.fromJSON (exec ./yarn_parser.mjs yarnLockfile);
+      json = builtins.fromJSON (builtins.readFile (exec ./yarn_parser.mjs yarnLockfile));
 
-      out = map processEntry json.root;
+      out = map processYarnEntry json.root;
     in
-      exec ./yarn_stringify.js {
+      exec ./yarn_stringify.mjs (builtins.toJSON {
         comment = json.comment;
         root = out;
-      };
+      });
   in {
     inherit prepareLockfile prepareYarnLockfile;
 

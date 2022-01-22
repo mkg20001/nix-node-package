@@ -6,6 +6,8 @@
 , writeText
 , python3
 , yarn
+, runCommand
+, nodePackages
 , ...
 }:
   with lib;
@@ -37,7 +39,7 @@
 
         yarnLockfile = if yarnLock != null then yarnLock else "${root}/yarn.lock";
 
-        yarnLockfilePrepared = if yarn then prepareYarnLockfile { inherit nodejs yarnLockfile; } else null;
+        yarnLockfilePrepared = if yarn then prepareYarnLockfile { inherit nodejs yarnLockfile runCommand; } else null;
         npmLockfilePrepared = if npm
           then prepareLockfile json (production && buildProduction)
           else null;
@@ -51,7 +53,7 @@
 
           src = root;
 
-          lockfile = if yarn then writeText "yarn.lock" yarnLockfilePrepared
+          lockfile = if yarn then yarnLockfilePrepared
             else if npm then writeText "package-lock.json" npmLockfilePrepared
             else throw "no lockfile format";
 
@@ -82,7 +84,7 @@
             cat $lockfile > "yarn.lock"
             yarn --offline --ignore-scripts ${if buildProduction then "--production" else ""}
             patchShebangs node_modules
-            yarn rebuild
+            # yarn rebuild --offline
           '' else ''
             cat $lockfile > "package-lock.json"
             npm ci --ignore-scripts ${if buildProduction then "--production" else ""}
@@ -104,7 +106,7 @@
               cat $lockfile > "yarn.lock"
               yarn --offline --ignore-scripts ${if production then "--production" else ""}
               patchShebangs node_modules
-              yarn rebuild
+              # yarn rebuild --offline
             '' else ''
               cat $lockfile > "package-lock.json"
               npm ci --ignore-scripts ${if production then "--production" else ""}
