@@ -71,8 +71,13 @@
         newJson = recreateLockfile json { production = if json.lockfileVersion < 2 then production else false; version = json.lockfileVersion; };
       in
         builtins.toJSON newJson;
+
+    # FIXME: stub
+    prepareYarnLockfile = { yarnLockfile, nodejs }:
+      "";
   in {
-    prepareLockfile = prepareLockfile;
+    inherit prepareLockfile prepareYarnLockfile;
+
     concatAttrs = a: b: # just a level-1 concat for lists only, due to perf
       a // recursiveIterateRecreate b (key:
         if lib.hasAttrByPath [ key ] a && builtins.isList a.${key} && builtins.isList b.${key} then

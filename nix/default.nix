@@ -5,28 +5,43 @@
 , nukeReferences
 , writeText
 , python3
+, yarn
 , ...
 }:
   with lib;
   let
     u = import ./util.nix { lib = lib; fetchurl = fetchurl; };
 
+    _yarn = yarn;
+
     makeNode = {
       root,
+      package ? null,
       packageLock ? null,
       yarnLock ? null,
 
       nodejs,
       production ? true,
       build ? false,
-      buildProduction ? false
+      buildProduction ? false,
+      yarn ? yarnLock != null,
+      npm ? !yarn
     }: attrs:
       with u root;
       let
         # code
-        jsonFile = if (packageLock != null) then packageLock else "${root}/package-lock.json"; # TODO: yarn.lock
-        json = builtins.fromJSON(builtins.readFile jsonFile); # TODO: also support yarn.lock
-        lockfilePrepared = prepareLockfile json (production && buildProduction);
+        jsonFile = if (packageLock != null) then packageLock else
+          if yarnLock != null then (if package != null then package else "${root}/package.json")
+          else "${root}/package-lock.json";
+        json = builtins.fromJSON(builtins.readFile jsonFile);
+
+        yarnLockfile = if yarnLock != null then yarnLock else "${root}/yarn.lock";
+
+        yarnLockfilePrepared = if yarn then prepareYarnLockfile { inherit nodejs yarnLockfile; } else null;
+        npmLockfilePrepared = if npm
+          then prepareLockfile json (production && buildProduction)
+          else null;
+
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
       in
@@ -36,9 +51,11 @@
 
           src = root;
 
-          lockfile = writeText "package-lock.json" lockfilePrepared;
+          lockfile = if yarn then writeText "yarn.lock" yarnLockfilePrepared
+            else if npm then writeText "package-lock.json" npmLockfilePrepared
+            else throw "no lockfile format";
 
-          buildInputs = [ nodejs ];
+          buildInputs = if yarn then [ nodejs (_yarn.override({ inherit nodejs; })) ] else [ nodejs ];
 
           nativeBuildInputs = [ jq nukeReferences python3 ];
 
@@ -61,12 +78,17 @@
             echo 9 > "$GYP_FOLDER/installVersion"
           '';
 
-          nodeBuildPhase = if build then ''
+          nodeBuildPhase = if build then (if yarn then ''
+            cat $lockfile > "yarn.lock"
+            yarn --offline --ignore-scripts ${if buildProduction then "--production" else ""}
+            patchShebangs node_modules
+            yarn rebuild
+          '' else ''
             cat $lockfile > "package-lock.json"
             npm ci --ignore-scripts ${if buildProduction then "--production" else ""}
             patchShebangs node_modules
             npm rebuild
-          '' else "true";
+          '') else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
 
@@ -78,17 +100,30 @@
 
             cd "$out"
 
-            cat $lockfile > "package-lock.json"
-            npm ci --ignore-scripts ${if production then "--production" else ""}
-            patchShebangs node_modules
-            npm rebuild
+            ${if yarn then ''
+              cat $lockfile > "yarn.lock"
+              yarn --offline --ignore-scripts ${if production then "--production" else ""}
+              patchShebangs node_modules
+              yarn rebuild
+            '' else ''
+              cat $lockfile > "package-lock.json"
+              npm ci --ignore-scripts ${if production then "--production" else ""}
+              patchShebangs node_modules
+              npm rebuild
+            ''}
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
             cat "$out/package.json" | jq -r --arg out "$out" 'select(.bin != null) | .bin | to_entries | .[] | ["ln", "-s", $out + "/" + .value, $out + "/bin/" + .key] | join(" ")' | sh -ex -
 
-            nuke-refs "$out/package-lock.json"
-            nuke-refs "$out/node_modules/.package-lock.json"
+            ${if yarn then ''
+              for f in $(find -iname yarn.lock); do
+                nuke-refs "$f"
+              done
+            '' else ''
+              nuke-refs "$out/package-lock.json"
+              nuke-refs "$out/node_modules/.package-lock.json"
+            ''}
             for f in $(find -iname package.json); do
               nuke-refs "$f"
             done
