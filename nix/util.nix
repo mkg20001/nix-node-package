@@ -93,7 +93,7 @@
       if entry ? empty then entry else
       if lib.hasPrefix "/" (f "resolved") then entry # if we have a local file path, just copy
       else replaceInEntry {
-        resolved = "${fetched}#${builtins.elemAt y 1}";
+        resolved = "${fetched}${if builtins.elemAt y 1 != null then "#${builtins.elemAt y 1}" else ""}";
       } entry;
 
     # public util
