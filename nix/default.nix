@@ -85,7 +85,7 @@
             cat $lockfile > "yarn.lock"
             yarn --offline --ignore-scripts ${if buildProduction then "--production" else ""}
             patchShebangs node_modules
-            # yarn rebuild --offline
+            npm rebuild
           '' else ''
             cat $lockfile > "package-lock.json"
             npm ci --ignore-scripts ${if buildProduction then "--production" else ""}
@@ -107,7 +107,7 @@
               cat $lockfile > "yarn.lock"
               yarn --offline --ignore-scripts ${if production then "--production" else ""}
               patchShebangs node_modules
-              # yarn rebuild --offline
+              npm rebuild
             '' else ''
               cat $lockfile > "package-lock.json"
               npm ci --ignore-scripts ${if production then "--production" else ""}
