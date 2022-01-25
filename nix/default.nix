@@ -25,6 +25,7 @@
       nodejs,
       production ? true,
       build ? false,
+      install ? true,
       buildProduction ? false,
       yarn ? yarnLock != null,
       npm ? !yarn
@@ -94,7 +95,7 @@
 
           preInstallPhases = [ "nodeInstallPhase" ];
 
-          nodeInstallPhase = ''
+          nodeInstallPhase = if install then ''
             npm pack
             tar xfz "${tarball}"
             mkdir -p "$out"
@@ -129,7 +130,7 @@
             for f in $(find -iname package.json); do
               nuke-refs "$f"
             done
-          '';
+          '' else "true";
 
           installPhase = "true"; # add dummy install phase so it won't fail, user can override this
         } attrs);
