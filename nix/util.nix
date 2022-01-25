@@ -82,18 +82,19 @@
       f = findEntry entry;
 
       hash = parseIntegrity (f "integrity");
+      resolved = f "resolved";
 
-      y = parseYarn (f "resolved");
+      y = parseYarn resolved;
 
       fetched = fetchurl {
-        url = builtins.elemAt y 0;
+        url = if y != null then builtins.elemAt y 0 else resolved;
         ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
       };
     in
       if entry ? empty then entry else
       if lib.hasPrefix "/" (f "resolved") then entry # if we have a local file path, just copy
       else replaceInEntry {
-        resolved = "${fetched}${if builtins.elemAt y 1 != null then "#${builtins.elemAt y 1}" else ""}";
+        resolved = "${fetched}${if y != null then "#${builtins.elemAt y 1}" else ""}";
       } entry;
 
     # public util
