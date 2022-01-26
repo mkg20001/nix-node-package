@@ -4,6 +4,7 @@
 , jq
 , nukeReferences
 , writeText
+, python2
 , python3
 , yarn
 , runCommand
@@ -60,7 +61,7 @@
 
           buildInputs = if yarn then [ nodejs (_yarn.override({ inherit nodejs; })) ] else [ nodejs ];
 
-          nativeBuildInputs = [ jq nukeReferences python3 ];
+          nativeBuildInputs = [ jq nukeReferences python2 python3 ];
 
           prePhases = [ "nodeExports" ];
 
