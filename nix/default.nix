@@ -83,7 +83,7 @@
 
           nodeBuildPhase = if build then (if yarn then ''
             cat $lockfile > "yarn.lock"
-            yarn --offline --ignore-scripts ${if buildProduction then "--production" else ""}
+            yarn --frozen-lockfile --offline --ignore-scripts ${if buildProduction then "--production" else ""}
             patchShebangs node_modules
             npm rebuild
           '' else ''
@@ -105,7 +105,7 @@
 
             ${if yarn then ''
               cat $lockfile > "yarn.lock"
-              yarn --offline --ignore-scripts ${if production then "--production" else ""}
+              yarn --frozen-lockfile --offline --ignore-scripts ${if production then "--production" else ""}
               patchShebangs node_modules
               npm rebuild
             '' else ''
