@@ -95,7 +95,7 @@
     in
       if entry ? empty then entry
       else if lib.hasPrefix "/" resolved then entry # if we have a local file path, just copy
-      else if integrity == null && builtins.match "^.+#.+$" resolved != null then let
+      else if integrity == null && parseYarn resolved != null then let
         fetched = fetchurl {
           url = builtins.elemAt y 0;
           sha1 = builtins.elemAt y 1;
