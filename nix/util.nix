@@ -81,8 +81,10 @@
     processYarnEntry = entry: let
       f = findEntry entry;
 
-      hash = parseIntegrity (f "integrity");
       resolved = f "resolved";
+      integrity = f "integrity";
+
+      hash = parseIntegrity integrity;
 
       y = parseYarn resolved;
 
@@ -91,11 +93,20 @@
         ${builtins.elemAt hash 0} = builtins.elemAt hash 1;
       };
     in
-      if entry ? empty then entry else
-      if lib.hasPrefix "/" (f "resolved") then entry # if we have a local file path, just copy
+      if entry ? empty then entry
+      else if lib.hasPrefix "/" resolved then entry # if we have a local file path, just copy
+      else if integrity == null && builtins.match "^.+#.+$" resolved != null then let
+        fetched = fetchurl {
+          url = builtins.elemAt y 0;
+          sha1 = builtins.elemAt y 1;
+        };
+      in replaceInEntry {
+        resolved = "${fetched}#${builtins.elemAt y 1}";
+      } entry
       else replaceInEntry {
         resolved = "${fetched}${if y != null then "#${builtins.elemAt y 1}" else ""}";
-      } entry;
+      } entry
+      ;
 
     # public util
     prepareLockfile = json: production:
