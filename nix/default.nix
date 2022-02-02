@@ -78,7 +78,7 @@
             NODE_VERSION=$(node --version | sed "s|v||g")
             GYP_FOLDER="$HOME/.cache/node-gyp/$NODE_VERSION"
             mkdir -p "$GYP_FOLDER"
-            ln -s ${nodejs}/include "$GYP_FOLDER/include"
+            cp -rp ${nodejs}/include "$GYP_FOLDER/include"
             echo 9 > "$GYP_FOLDER/installVersion"
           '';
 
