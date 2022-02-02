@@ -63,7 +63,7 @@
 
           nativeBuildInputs = [ jq nukeReferences python2 python3 ];
 
-          prePhases = [ "nodeExports" ];
+          prePhases = [ "nodeExports" "nodeGypHeaders" ];
 
           nodeExports = ''
             # fix update check failed errors
@@ -72,8 +72,6 @@
             export HOME=$(mktemp -d)
           '';
 
-          preBuildPhases = [ "nodeGypHeaders" "nodeBuildPhase" ];
-
           nodeGypHeaders = ''
             NODE_VERSION=$(node --version | sed "s|v||g")
             GYP_FOLDER="$HOME/.cache/node-gyp/$NODE_VERSION"
@@ -81,6 +79,8 @@
             cp -rp ${nodejs}/include "$GYP_FOLDER/include"
             echo 9 > "$GYP_FOLDER/installVersion"
           '';
+
+          preBuildPhases = [ "nodeBuildPhase" ];
 
           nodeBuildPhase = if build then (if yarn then ''
             cat $lockfile > "yarn.lock"

@@ -3,7 +3,7 @@ let
   mkDerivation = import ../../nix/default.nix pkgs {
     root = ./.;
     nodejs = pkgs.nodejs-16_x;
-    buildProduction = true;
+    build = true;
     yarnLock = ./yarn.lock;
   };
 in mkDerivation (with pkgs; {
