@@ -108,6 +108,8 @@
             cd "$out"
 
             ${genInstall production}
+            # clean up the reference
+            rm -f $out/node_modules/.bin/node-gyp
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
