@@ -4,7 +4,6 @@
 , jq
 , nukeReferences
 , writeText
-, python2
 , python3
 , yarn
 , runCommand
@@ -48,6 +47,20 @@
 
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
+
+        genInstall = isProd: ''
+          ${if yarn then ''
+            cat $lockfile > "yarn.lock"
+            yarn --frozen-lockfile --offline --ignore-scripts ${if isProd then "--production" else ""}
+          '' else ''
+            cat $lockfile > "package-lock.json"
+            npm ci --ignore-scripts ${if isProd then "--production" else ""}
+          ''}
+          # patch to automatically use latest node-gyp
+          ln -sf ${nodePackages.node-gyp}/bin/node-gyp node_modules/.bin/node-gyp
+          patchShebangs node_modules
+          npm rebuild
+        '';
       in
         stdenv.mkDerivation(concatAttrs {
           pname = safename;
@@ -61,7 +74,7 @@
 
           buildInputs = if yarn then [ nodejs (_yarn.override({ inherit nodejs; })) ] else [ nodejs ];
 
-          nativeBuildInputs = [ jq nukeReferences python2 python3 ];
+          nativeBuildInputs = [ jq nukeReferences python3 ];
 
           prePhases = [ "nodeExports" "nodeGypHeaders" ];
 
@@ -82,17 +95,7 @@
 
           preBuildPhases = [ "nodeBuildPhase" ];
 
-          nodeBuildPhase = if build then (if yarn then ''
-            cat $lockfile > "yarn.lock"
-            yarn --frozen-lockfile --offline --ignore-scripts ${if buildProduction then "--production" else ""}
-            patchShebangs node_modules
-            npm rebuild
-          '' else ''
-            cat $lockfile > "package-lock.json"
-            npm ci --ignore-scripts ${if buildProduction then "--production" else ""}
-            patchShebangs node_modules
-            npm rebuild
-          '') else "true";
+          nodeBuildPhase = if build then (genInstall buildProduction) else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
 
@@ -104,17 +107,7 @@
 
             cd "$out"
 
-            ${if yarn then ''
-              cat $lockfile > "yarn.lock"
-              yarn --frozen-lockfile --offline --ignore-scripts ${if production then "--production" else ""}
-              patchShebangs node_modules
-              npm rebuild
-            '' else ''
-              cat $lockfile > "package-lock.json"
-              npm ci --ignore-scripts ${if production then "--production" else ""}
-              patchShebangs node_modules
-              npm rebuild
-            ''}
+            ${genInstall production}
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
