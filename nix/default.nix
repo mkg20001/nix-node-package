@@ -126,7 +126,11 @@
             done
           '' else "true";
 
-          installPhase = "true"; # add dummy install phase so it won't fail, user can override this
+          # add dummy install phase so it won't fail, user can override this
+          installPhase = ''
+            runHook preInstall
+            runHook postInstall
+          '';
         } attrs);
   in
     makeNode
