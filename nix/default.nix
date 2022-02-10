@@ -68,7 +68,10 @@
             {} +
 
           # patch to automatically use latest node-gyp
-          find -iwholename "*/node_modules/node-gyp" -type d -exec rm -rf {} + -exec ln -sf "$GYP/mod" {} +
+          for g in $(find -iwholename "*/node_modules/node-gyp" -type d); do
+            rm -rf "$g"
+            ln -sf "$GYP/mod" "$g"
+          done
           patchShebangs node_modules
           npm rebuild
         '';
