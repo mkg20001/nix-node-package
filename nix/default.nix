@@ -32,6 +32,9 @@
     }: attrs:
       with u root;
       let
+        # newer nodePackages are broken so we have to use hacks
+        # nodePackages = nodejs.pkgs;
+
         # code
         jsonFile = if (packageLock != null) then packageLock else
           if yarnLock != null then (if package != null then package else "${root}/package.json")
@@ -56,8 +59,16 @@
             cat $lockfile > "package-lock.json"
             npm ci --ignore-scripts ${if isProd then "--production" else ""}
           ''}
+          # the gyp hack
+          GYP=$(mktemp -d)
+          cp -rp ${nodePackages.node-gyp}/lib/node_modules/node-gyp "$GYP/mod"
+          chmod +w -R "$GYP/mod"
+          find "$GYP/mod" -type f -exec sed -i \
+            -e "s|/nix/store/[a-z0-9]*-nodejs-[0-9.]*|${nodejs}|g" \
+            {} +
+
           # patch to automatically use latest node-gyp
-          ln -sf ${nodePackages.node-gyp}/bin/node-gyp node_modules/.bin/node-gyp
+          find -iwholename "*/node_modules/node-gyp" -type d -exec rm -rf {} + -exec ln -sf "$GYP/mod" {} +
           patchShebangs node_modules
           npm rebuild
         '';
@@ -74,7 +85,7 @@
 
           buildInputs = if yarn then [ nodejs (_yarn.override({ inherit nodejs; })) ] else [ nodejs ];
 
-          nativeBuildInputs = [ jq nukeReferences python3 ];
+          nativeBuildInputs = [ jq nukeReferences python3 nodePackages.node-gyp ];
 
           prePhases = [ "nodeExports" "nodeGypHeaders" ];
 
@@ -109,7 +120,7 @@
 
             ${genInstall production}
             # clean up the reference
-            rm -f $out/node_modules/.bin/node-gyp
+            find -iwholename "*/node_modules/node-gyp" -type d -delete
 
             mkdir -p $out/bin
             # TODO: will possibly break if .bin is literal string (in which case we need to map it to {key: .name, value: .bin})
