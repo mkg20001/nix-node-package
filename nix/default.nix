@@ -25,6 +25,7 @@
       nodejs,
       production ? true,
       build ? false,
+      test ? false,
       install ? true,
       buildProduction ? false,
       yarn ? yarnLock != null,
@@ -112,6 +113,10 @@
           nodeBuildPhase = if build then (genInstall buildProduction) else "true";
 
           preInstallPhases = [ "nodeInstallPhase" ];
+
+          checkPhase = if !test then null else if !build then builtins.throw "[nix-node-package] test option needs build option enabled" else ''
+            npm run test
+          '';
 
           nodeInstallPhase = if install then ''
             npm pack
