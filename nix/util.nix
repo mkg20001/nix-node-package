@@ -94,6 +94,7 @@
       };
     in
       if entry ? empty then entry
+      else if !(entry ? resolved) then entry
       else if lib.hasPrefix "/" resolved then entry # if we have a local file path, just copy
       else if integrity == null && parseYarn resolved != null then let
         fetched = fetchurl {
