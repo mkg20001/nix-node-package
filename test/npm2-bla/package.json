@@ -13,7 +13,7 @@
     "mkdirp": "^1.0.4",
     "mkg-bin-gen": "^0.1.4",
     "mkgs-tool": "^0.1.15",
-    "node-forge": "^0.10.0",
+    "node-forge": "^1.3.0",
     "pino": "^6.11.3",
     "pino-noir": "^2.2.1",
     "relish": "^3.0.0"
