@@ -63,6 +63,8 @@
           [(lib.nameValuePair name (recursiveIterateReplace lock.dependencies (opts // { version = 1; })))]
         else if name == "packages" && opts.version == 2 then
           [(lib.nameValuePair name (recursiveIterateReplace lock.packages opts))]
+        else if name == "packages" && opts.version == 3 then
+          [(lib.nameValuePair name (recursiveIterateReplace lock.packages opts))]
         else
           [(lib.nameValuePair name lock.${name})]
     );
@@ -112,7 +114,7 @@
     # public util
     prepareLockfile = json: production:
       let
-        newJson = recreateLockfile json { production = if json.lockfileVersion < 2 then production else false; version = json.lockfileVersion; };
+        newJson = recreateLockfile json { production = if json.lockfileVersion != 2 then production else false; version = json.lockfileVersion; };
       in
         builtins.toJSON newJson;
 

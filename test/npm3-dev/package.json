@@ -1,0 +1,13 @@
+{
+    "name": "stub",
+    "version": "0.0.1",
+    "description": "Stub Package",
+    "main": "index.js",
+    "license": "MIT",
+    "dependencies": {
+        "diff-so-fancy": "^1.4.3"
+    },
+    "devDependencies": {
+        "left-pad": "^1.3.0"
+    }
+}
