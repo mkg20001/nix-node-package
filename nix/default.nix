@@ -105,6 +105,7 @@
             GYP_FOLDER="$HOME/.cache/node-gyp/$NODE_VERSION"
             mkdir -p "$GYP_FOLDER"
             cp -rp ${nodejs}/include "$GYP_FOLDER/include"
+            chmod aog+w -R "$GYP_FOLDER/include"
             echo 9 > "$GYP_FOLDER/installVersion"
           '';
 
