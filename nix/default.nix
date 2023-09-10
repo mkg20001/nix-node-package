@@ -106,7 +106,7 @@
             mkdir -p "$GYP_FOLDER"
             cp -rp ${nodejs}/include "$GYP_FOLDER/include"
             chmod aog+w -R "$GYP_FOLDER/include"
-            echo 9 > "$GYP_FOLDER/installVersion"
+            echo 11 > "$GYP_FOLDER/installVersion"
           '';
 
           preBuildPhases = [ "nodeBuildPhase" ];
