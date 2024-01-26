@@ -1,0 +1,27 @@
+{
+  "name": "testpackage",
+  "template": {
+    "extends": [
+      "node"
+    ],
+    "node": {
+      "noLock": true
+    }
+  },
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -A",
+    "cov": "nyc mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "*",
+    "nyc": "*"
+  },
+  "dependencies": {
+    "graphql-tag": "github:mkg20001/graphql-esm#graphql"
+  }
+}

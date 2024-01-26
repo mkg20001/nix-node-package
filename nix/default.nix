@@ -5,22 +5,24 @@
 , nukeReferences
 , writeText
 , python3
-, yarn
 , runCommand
 , nodePackages
+, callPackage
 , ...
 }:
   with lib;
   let
     u = import ./util.nix { lib = lib; fetchurl = fetchurl; };
-
-    _yarn = yarn;
+    p = callPackage ./pnpm2nix_lockfile.nix {};
 
     makeNode = {
       root,
       package ? null,
       packageLock ? null,
       yarnLock ? null,
+      pnpmLock ? null,
+
+      registry ? "https://registry.npmjs.org",
 
       nodejs,
       production ? true,
@@ -29,7 +31,8 @@
       install ? true,
       buildProduction ? false,
       yarn ? yarnLock != null,
-      npm ? !yarn
+      pnpm ? pnpmLock != null,
+      npm ? !yarn && !pnpm
     }: attrs:
       with u root;
       let
@@ -39,6 +42,7 @@
         # code
         jsonFile = if (packageLock != null) then packageLock else
           if yarnLock != null then (if package != null then package else "${root}/package.json")
+          else if pnpmLock != null then (if package != null then package else "${root}/package.json")
           else "${root}/package-lock.json";
         json = builtins.fromJSON(builtins.readFile jsonFile);
 
@@ -48,14 +52,40 @@
         npmLockfilePrepared = if npm
           then prepareLockfile json (production && buildProduction)
           else null;
+        pnpmLockfilePrepared = if pnpm then p.patchLockfile pnpmLock else null;
 
         safename = builtins.replaceStrings ["@" "/"] ["" "-"] json.name;
         tarball = "${safename}-${json.version}.tgz";
+
+        pnpmStore = if pnpm then runCommand "${safename}-pnpm-store"
+          {
+            nativeBuildInputs = [ nodejs nodejs.pkgs.pnpm ];
+          } ''
+          mkdir -p $out
+
+          store=$(pnpm store path)
+          mkdir -p $(dirname $store)
+          ln -s $out $(pnpm store path)
+
+          pnpm store add ${concatStringsSep " " (unique (p.dependencyTarballs { inherit registry; lockfile = pnpmLock; }))}
+        '' else null;
 
         genInstall = isProd: ''
           ${if yarn then ''
             cat $lockfile > "yarn.lock"
             yarn --frozen-lockfile --offline --ignore-scripts ${if isProd then "--production" else ""}
+          '' else if pnpm then ''
+            store=$(pnpm store path)
+            mkdir -p $(dirname $store)
+
+            cat $lockfile > "pnpm-lock.yaml"
+
+            # solve pnpm: EACCES: permission denied, copyfile '/build/.pnpm-store
+            cp -RL ${pnpmStore} $(pnpm store path)
+
+            chmod -R +w $(pnpm store path)
+
+            pnpm install --frozen-lockfile --offline --ignore-scripts
           '' else ''
             cat $lockfile > "package-lock.json"
             npm ci --ignore-scripts ${if isProd then "--production" else ""}
@@ -74,7 +104,7 @@
             ln -sf "$GYP/mod" "$g"
           done
           patchShebangs node_modules
-          npm rebuild
+          ${if pnpm then "pnpm rebuild" else "npm rebuild"}
         '';
       in
         stdenv.mkDerivation(concatAttrs {
@@ -85,9 +115,10 @@
 
           lockfile = if yarn then yarnLockfilePrepared
             else if npm then writeText "package-lock.json" npmLockfilePrepared
+            else if pnpm then writeText "pnpm-lock.yaml" (builtins.toJSON pnpmLockfilePrepared)
             else throw "no lockfile format";
 
-          buildInputs = if yarn then [ nodejs (_yarn.override({ inherit nodejs; })) ] else [ nodejs ];
+          buildInputs = if yarn then [ nodejs nodejs.pkgs.yarn ] else if pnpm then [ nodejs nodejs.pkgs.pnpm ] else [ nodejs ];
 
           nativeBuildInputs = [ jq nukeReferences python3 nodePackages.node-gyp ];
 
@@ -137,6 +168,10 @@
 
             ${if yarn then ''
               for f in $(find -iname yarn.lock); do
+                nuke-refs "$f"
+              done
+            '' else if pnpm then ''
+              for f in $(find -iname pnpm-lock.yaml); do
                 nuke-refs "$f"
               done
             '' else ''
