@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "sharp": "^0.29.3",
+    "sharp": "^0.30.5",
     "node-gyp": "^2.0.0"
   }
 }
